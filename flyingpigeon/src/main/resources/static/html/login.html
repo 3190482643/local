@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>飞鸽登录</title>
+    <link href="../logo/fp.jpeg" type="image/x-icon" rel="icon">
+    <style>
+        input {
+            background: antiquewhite;
+            border-color: antiquewhite;
+            border-radius: 5px;
+            width: 200px;
+            height: 25px;
+        }
+
+        button {
+            width: 60px;
+            height: 30px;
+            background: aqua;
+            border-radius: 5px;
+            border-color: aqua;
+            color: white;
+        }
+
+        dialog {
+            top: 150px;
+            background: pink;
+            border-radius: 5px;
+            border-color: pink;
+        }
+    </style>
+</head>
+<body>
+<div id="d">
+    <br><br><br><br><br><br><br><br>
+    <center><input type="text" placeholder="用户名:" v-model="messageuser.username"></center>
+    <br>
+    <center><input type="password" placeholder="密码:" v-model="messageuser.password"></center>
+    <br>
+    <center>
+        <button @click="denglu()">登录</button>
+        <button style="margin-left: 20px" @click="zhuce()">注册</button>
+    </center>
+    <dialog>
+        <center><input type="text" placeholder="用户名:" v-model="user.username"></center>
+        <br>
+        <center><input type="password" placeholder="密码:" v-model="user.password"></center>
+        <br>
+        <center><input type="password" placeholder="确认密码:" v-model="p"></center>
+        <br>
+        <center>
+            <button @click="adduser()">注册</button>
+            <button style="margin-left: 20px" @click="guanbi()">关闭</button>
+        </center>
+    </dialog>
+</div>
+
+<!--http://localhost:8080/html/login.html-->
+<script src="../js/vue.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    new Vue({
+        el: "#d",
+        data: {
+            messageuser: {"username": "", "password": ""},
+            user: {"username": "", "password": ""},
+            p: ""
+        },
+        methods: {
+            denglu() {
+                if (this.messageuser.username != "" && this.messageuser.password != "") {
+                    axios.get("/login/" + this.messageuser.username + "/" + this.messageuser.password).then((res) => {
+                        if (res.data.b == true) {
+                            alert("登陆成功");
+                            document.location.href = "main.html";
+                        } else {
+                            alert("账号或密码错误");
+                        }
+                    });
+                } else {
+                    alert("请输入完整内容!")
+                }
+            },
+            zhuce() {
+                document.querySelector("dialog").show()
+            },
+            guanbi() {
+                document.querySelector("dialog").close();
+            },
+            adduser() {
+                if (this.user.username != "" && this.user.password != "" && this.p != "") {
+                    if (this.p == this.user.password) {
+                        axios.get("/login/" + this.user.username).then((res) => {
+                            if (res.data.b == true) {
+                                axios.post("/login", this.user).then((res) => {
+                                    if (res.data.b == true) {
+                                        alert("注册成功");
+                                        this.guanbi();
+                                    } else {
+                                        alert("注册失败");
+                                    }
+                                });
+                            } else {
+                                alert("用户名已存在!");
+                            }
+                        });
+                    } else {
+                        alert("两次密码必须相同");
+                    }
+                } else {
+                    alert("请输入完整内容!");
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>

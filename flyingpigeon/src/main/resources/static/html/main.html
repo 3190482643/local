@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>飞鸽</title>
+    <link href="../logo/fp.jpeg" type="image/x-icon" rel="icon">
+    <style>
+        ul {
+            overflow: hidden;
+            list-style: none;
+            background: antiquewhite;
+        }
+
+        li {
+            width: 100px;
+            height: 50px;
+            text-align: center;
+            line-height: 50px;
+            font-size: larger;
+            color: white;
+            float: left;
+            margin-left: 20px;
+            background: aqua;
+            border-radius: 5px 5px 5px 5px;
+        }
+
+        label {
+            display: inline-block;
+            height: 40px;
+            font-size: larger;
+            line-height: 40px;
+            background: deepskyblue;
+            margin-left: 30px;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        button {
+            background: deepskyblue;
+            margin-left: 70px;
+            color: white;
+            border-radius: 5px;
+            border-color: deepskyblue;
+            margin-top: 10px;
+        }
+
+        dialog {
+            background: pink;
+            border-color: pink;
+            border-radius: 10px;
+        }
+
+        #d1{
+            top: 150px;
+        }
+
+        #t1{
+            margin-left: 10px;
+            width: 270px;
+            height: 30px;
+        }
+
+        textarea {
+            margin-top: 20px;
+            margin-left: 10px;
+            width: 270px;
+            height: 110px;
+        }
+    </style>
+</head>
+<body style="background: lavenderblush">
+<div id="d">
+    <p>欢迎用户{{msg.sender}} come to 飞鸽!</p>
+    <ul>
+        <li @click="li1()">抓鸽子</li>
+        <li @click="li2()">放鸽子</li>
+        <li @click="li3()">杀鸽子</li>
+    </ul>
+    <div v-for="m in messages">
+        <label>{{m.sendtime}}--{{m.message}}--发送人:{{m.sender}}</label>
+        <br>
+    </div>
+    <dialog id="d1">
+        <input type="text" placeholder="请输入接收的用户名:" v-model="msg.recipient" id="t1"><br>
+        <textarea placeholder="请输入正文" v-model="msg.message"></textarea><br>
+        <button @click="flying()">Flying</button>
+        <button @click="guanbid()">关闭</button>
+    </dialog>
+</div>
+
+<!--http://localhost:8080/html/main.html-->
+<script src="../js/vue.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    let v=new Vue({
+        el: "#d",
+        data: {
+            messages: [],
+            msg:{},
+        },
+        mounted() {
+            this.getsender();
+        },
+        methods: {
+            li1() {
+                this.selectall();
+            },
+            li2() {
+                document.querySelector("dialog").show();
+            },
+            li3(){
+                let b = confirm("你确定要删除吗？");
+                if (b){
+                axios.delete("/main/"+this.msg.sender).then((res) => {
+                    if (res.data.b==true){
+                        alert("删除成功!");
+                        this.selectall();
+                    }else {
+                        alert("网络异常,请重试!");
+                    }
+                });}else {
+                    alert("已取消!");
+                }
+            },
+            getsender() {
+                axios.get("/login").then((res) => {
+                    this.msg.sender = res.data.data;
+                    this.selectall();
+                });
+            },
+            selectall() {
+                axios.get("/main/"+this.msg.sender).then((res) => {
+                    if (res.data.b==true){
+                        this.messages = res.data.data;
+                    }else {
+                        alert("网络异常,请重试!");
+                    }
+                });
+            },
+            guanbid() {
+                document.querySelector("dialog").close();
+            },
+            flying() {
+                axios.get("/login/"+this.msg.recipient).then((res)=>{
+                    if (res.data.b==false){
+                        axios.post("/main",this.msg).then((res) => {
+                            if (res.data.b == true) {
+                                alert("发送成功");
+                                this.msg.recipient="";
+                                this.msg.message = "";
+                                this.guanbid();
+                                this.selectall();
+                            } else {
+                                alert("发布失败");
+                            }
+                        });
+                    }else {
+                        alert("该用户不存在!");
+                    }
+                });
+            },
+        }
+    });
+    // todo 开启自动更新消息
+    // let timer=setInterval(v.selectall,5000);
+</script>
+</body>
+</html>
